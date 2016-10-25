@@ -1,0 +1,13 @@
+---
+- hosts: [] # add hosts on CLI with -i "myhost,"
+  remote_user: pi
+  tasks:
+  - name: ensure prerequisites
+    apt: name={{ item }} state=latest update_cache=yes
+    with_items:
+      - vim
+      - python-pip
+      - python-virtualenv
+    become: true
+  - name: ensure radicale is installed
+    pip: name=radicale virtualenv=/home/pi/radicale-venv
