@@ -1,0 +1,40 @@
+---
+- hosts: [] # add hosts on CLI with -i "myhost,"
+  vars:
+  - radicale_user: pi # overwrite on CLI with --extra-vars "radicale_user=<myuser>"
+  remote_user: "{{ user }}"
+  tasks:
+  - name: update apt cache, install vim
+    apt: name=vim update_cache=yes
+    become: true
+  - name: install prerequisites
+    apt: name={{ item }} state=latest
+    with_items:
+      - python-pip
+      - python-virtualenv
+      - nginx
+    become: true
+  - name: install radicale
+    pip: name=radicale virtualenv=/home/{{ radicale_user }}/radicale-venv
+  - name: make radicale dir
+    file: path=/home/{{ radicale_user }}/radicale state=directory
+  - name: radicale.conf
+    copy: src=radicale.conf dest=/home/{{ radicale_user }}/radicale/radicale.conf
+  - name: logging.conf
+    copy: src=logging.conf dest=/home/{{ radicale_user }}/radicale/logging.conf
+  - name: radicale start script wrapper
+    template: src=start-radicale.sh dest=/home/{{ radicale_user }}/radicale/start-radicale.sh mode=0700
+  - name: start radicale
+    command: /home/{{ radicale_user }}/radicale/start-radicale.sh
+  - name: nginx reverse proxy conf
+    template: src=nginx.conf.j2 dest=/etc/nginx/sites-available/reverse-proxy.conf
+    become: true
+  - name: symlink nginx conf
+    file: src=/etc/nginx/sites-available/reverse-proxy.conf dest=/etc/nginx/sites-enabled/reverse-proxy.conf state=link
+    become: true
+  - name: disable default site
+    file: path=/etc/nginx/sites-enabled/default state=absent
+    become: true
+  - name: restart nginx
+    service: name=nginx state=restarted
+    become: true

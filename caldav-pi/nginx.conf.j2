@@ -1,0 +1,22 @@
+server {
+
+    listen 80;
+
+    # do not allow access to /
+
+    location / {
+        return 444;
+    }
+
+    # reverse proxy for radicale
+
+    location /radicale/ {
+        auth_basic "Restricted";
+        auth_basic_user_file /home/{{ radicale_user }}/radicale/users.radicale;
+        proxy_pass http://127.0.0.1:5232/;
+    }
+
+    location /{{ radicale_user }}/ {
+        proxy_pass http://127.0.0.1:5232/{{ radicale_user }}/;
+    }
+}
