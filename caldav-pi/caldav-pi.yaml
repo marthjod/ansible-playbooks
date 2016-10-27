@@ -4,6 +4,7 @@
   - radicale_user: pi # overwrite on CLI with --extra-vars "radicale_user=<myuser>"
   - radicale_htaccess_pass: secret # overwrite on CLI with --extra-vars "radicale_htaccess_pass=<mypass>"
   - radicale_dir: "/home/{{ radicale_user }}/radicale"
+  - backups_dir: "{{ radicale_dir }}/backups"
   remote_user: "{{ radicale_user }}"
   tasks:
   - name: update apt cache, install vim
@@ -16,6 +17,7 @@
       - python-virtualenv
       - nginx
       - openssl
+      - rsync
     become: true
   - name: install radicale
     pip: name=radicale virtualenv=/home/{{ radicale_user }}/radicale-venv
@@ -45,3 +47,7 @@
   - name: restart nginx
     service: name=nginx state=restarted
     become: true
+  - name: poor man's backup dir
+    file: path={{ backups_dir }} state=directory
+  - name: poor man's backups via cron
+    cron: user={{ radicale_user }} job="rsync -r {{ radicale_dir }}/collections/ {{ backups_dir }}/" minute="0" hour="5" name="Back up radicale calendars"
