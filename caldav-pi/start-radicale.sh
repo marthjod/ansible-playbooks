@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PID_FILE=/home/{{ radicale_user }}/radicale/radicale.pid
+PID_FILE={{ radicale_dir }}/radicale.pid
 
 pgrep -F $PID_FILE
 if [ $? -eq 0 ]; then
@@ -12,6 +12,6 @@ fi
 
 source /home/{{ radicale_user }}/radicale-venv/bin/activate
 radicale \
-  --config /home/{{ radicale_user }}/radicale/radicale.conf \
+  --config {{ radicale_dir }}/radicale.conf \
   --pid $PID_FILE
 

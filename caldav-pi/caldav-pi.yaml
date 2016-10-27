@@ -2,7 +2,9 @@
 - hosts: [] # add hosts on CLI with -i "myhost,"
   vars:
   - radicale_user: pi # overwrite on CLI with --extra-vars "radicale_user=<myuser>"
-  remote_user: "{{ user }}"
+  - radicale_htaccess_pass: secret # overwrite on CLI with --extra-vars "radicale_htaccess_pass=<mypass>"
+  - radicale_dir: "/home/{{ radicale_user }}/radicale"
+  remote_user: "{{ radicale_user }}"
   tasks:
   - name: update apt cache, install vim
     apt: name=vim update_cache=yes
@@ -13,19 +15,24 @@
       - python-pip
       - python-virtualenv
       - nginx
+      - openssl
     become: true
   - name: install radicale
     pip: name=radicale virtualenv=/home/{{ radicale_user }}/radicale-venv
   - name: make radicale dir
-    file: path=/home/{{ radicale_user }}/radicale state=directory
+    file: path={{ radicale_dir }} state=directory
   - name: radicale.conf
-    copy: src=radicale.conf dest=/home/{{ radicale_user }}/radicale/radicale.conf
+    copy: src=radicale.conf dest={{ radicale_dir }}/radicale.conf
   - name: logging.conf
-    copy: src=logging.conf dest=/home/{{ radicale_user }}/radicale/logging.conf
+    copy: src=logging.conf dest={{ radicale_dir }}/logging.conf
   - name: radicale start script wrapper
-    template: src=start-radicale.sh dest=/home/{{ radicale_user }}/radicale/start-radicale.sh mode=0700
+    template: src=start-radicale.sh dest={{ radicale_dir }}/start-radicale.sh mode=0700
   - name: start radicale
-    command: /home/{{ radicale_user }}/radicale/start-radicale.sh
+    command: "{{ radicale_dir }}/start-radicale.sh"
+  - name: create htaccess file
+    template: src=users.radicale.j2 dest={{ radicale_dir }}/users.radicale mode=0644
+  - name: add password to htaccess file
+    shell: echo "{{ radicale_htaccess_pass }}" | openssl passwd -stdin -apr1 >> {{ radicale_dir }}/users.radicale
   - name: nginx reverse proxy conf
     template: src=nginx.conf.j2 dest=/etc/nginx/sites-available/reverse-proxy.conf
     become: true
