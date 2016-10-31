@@ -44,10 +44,13 @@
   - name: disable default site
     file: path=/etc/nginx/sites-enabled/default state=absent
     become: true
-  - name: restart nginx
-    service: name=nginx state=restarted
-    become: true
+    notify:
+      - restart nginx
   - name: poor man's backup dir
     file: path={{ backups_dir }} state=directory
   - name: poor man's backups via cron
     cron: user={{ radicale_user }} job="rsync -r {{ radicale_dir }}/collections/ {{ backups_dir }}/" minute="0" hour="5" name="Back up radicale calendars"
+  handlers:
+  - name: restart nginx
+    service: name=nginx state=restarted
+    become: true
