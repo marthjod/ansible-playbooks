@@ -1,0 +1,18 @@
+---
+- hosts: [] # add hosts on CLI with -i "myhost,"
+  vars:
+  - ssh_user: pi # overwrite on CLI with --extra-vars "ssh_user=<myuser>"
+  remote_user: "{{ ssh_user }}"
+  tasks:
+  - name: update apt cache, install openssh-server
+    apt: name=openssh-server update_cache=yes
+    become: true
+  - name: sshd config # make sure keys have been copied before
+    template: src=sshd_config dest=/etc/ssh/sshd_config mode=0644
+    become: true
+    notify:
+      - restart sshd
+  handlers:
+  - name: restart sshd
+    service: name=sshd state=restarted
+    become: true

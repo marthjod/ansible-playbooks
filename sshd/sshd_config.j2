@@ -1,0 +1,36 @@
+Port 22
+Protocol 2
+UsePrivilegeSeparation yes
+KeyRegenerationInterval 3600
+ServerKeyBits 768
+SyslogFacility AUTH
+LogLevel INFO
+LoginGraceTime 120
+PermitRootLogin no
+StrictModes yes
+AllowUsers {{ ssh_user }}
+ClientAliveInterval 600
+ClientAliveCountMax 3
+RSAAuthentication yes
+PubkeyAuthentication yes
+IgnoreRhosts yes
+RhostsRSAAuthentication no
+HostbasedAuthentication no
+PermitEmptyPasswords no
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+X11Forwarding no
+X11DisplayOffset 10
+PrintMotd no
+PrintLastLog yes
+TCPKeepAlive yes
+AcceptEnv LANG LC_*
+UsePAM yes
+
+# https://stribika.github.io/2015/01/04/secure-secure-shell.html
+KexAlgorithms diffie-hellman-group-exchange-sha256
+# unknown key type ed25519
+# HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+Ciphers aes256-ctr,aes192-ctr,aes128-ctr
+MACs hmac-sha2-512,hmac-sha2-256,hmac-ripemd160
