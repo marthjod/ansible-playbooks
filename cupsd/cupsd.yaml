@@ -1,0 +1,48 @@
+---
+- hosts: [] # add hosts on CLI with -i "myhost,"
+  vars:
+  - cups_user: pi # overwrite on CLI with --extra-vars "cups_user=<myuser>"
+  remote_user: "{{ cups_user }}"
+  tasks:
+  - name: "update apt cache, install cups"
+    apt:
+      name: cups
+      update_cache: yes
+    become: true
+  - name: "cupsd config"
+    template:
+      src: cupsd.conf
+      dest: /etc/cups/cupsd.conf
+      mode: 0644
+    become: true
+    notify:
+      - "restart cups"
+  - name: "add {{ cups_user }} to lpadmin group"
+    user:
+      name: "{{ cups_user }}"
+      groups: lpadmin
+      append: yes
+    become: true
+  - name: "download foo2zjs driver"
+    get_url:
+      url: http://foo2zjs.rkkda.com/foo2zjs.tar.gz
+      dest: /tmp/foo2zjs.tar.gz
+  - name: "untar foo2zjs driver"
+    command: tar xfz foo2zjs.tar.gz
+    args:
+      chdir: /tmp
+  - name: "build foo2zjs driver"
+    command: make
+    args:
+      chdir: /tmp/foo2zjs
+  - name: "install foo2zjs driver"
+    command: make install
+    args:
+      chdir: /tmp/foo2zjs
+    become: true
+  handlers:
+  - name: "restart cups"
+    service:
+      name: cups
+      state: restarted
+    become: true
