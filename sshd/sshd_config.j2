@@ -34,3 +34,7 @@ KexAlgorithms diffie-hellman-group-exchange-sha256
 HostKey /etc/ssh/ssh_host_rsa_key
 Ciphers aes256-ctr,aes192-ctr,aes128-ctr
 MACs hmac-sha2-512,hmac-sha2-256,hmac-ripemd160
+
+{% if allow_sftp %}
+Subsystem sftp internal-sftp
+{% endif %}
