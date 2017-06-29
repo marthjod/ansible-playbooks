@@ -3,7 +3,7 @@
   vars:
   - ssh_user: pi # overwrite on CLI with --extra-vars "ssh_user=<myuser>"
   - allow_sftp: True # overwrite on CLI with --extra-vars "allow_sftp=False"
-                     # NB: Setting this to False will restrict Ansible access, though.
+                     # NB: Setting this to False will disable Ansible access, though.
   remote_user: "{{ ssh_user }}"
   tasks:
   - name: update apt cache, install openssh-server
