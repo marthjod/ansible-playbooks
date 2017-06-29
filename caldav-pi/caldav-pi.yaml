@@ -1,3 +1,4 @@
+# ansible-playbook -i "myhost," --extra-vars "radicale_user=<myuser>" --extra-vars "radicale_htaccess_pass=<htapass>" --ask-become-pass
 ---
 - hosts: [] # add hosts on CLI with -i "myhost,"
   vars:
@@ -7,20 +8,16 @@
   - backups_dir: "{{ radicale_dir }}/backups"
   remote_user: "{{ radicale_user }}"
   tasks:
-  - name: update apt cache, install vim
-    apt: name=vim update_cache=yes
-    become: true
   - name: install prerequisites
     apt: name={{ item }} state=latest
     with_items:
-      - python-pip
-      - python-virtualenv
+      - python3-pip
       - nginx
       - openssl
       - rsync
     become: true
   - name: install radicale
-    pip: name=radicale virtualenv=/home/{{ radicale_user }}/radicale-venv
+    command: python3 -m pip install --upgrade radicale --user
   - name: make radicale dir
     file: path={{ radicale_dir }} state=directory
   - name: radicale.conf
@@ -38,9 +35,13 @@
   - name: nginx reverse proxy conf
     template: src=nginx.conf.j2 dest=/etc/nginx/sites-available/reverse-proxy.conf
     become: true
+    notify:
+      - restart nginx
   - name: symlink nginx conf
     file: src=/etc/nginx/sites-available/reverse-proxy.conf dest=/etc/nginx/sites-enabled/reverse-proxy.conf state=link
     become: true
+    notify:
+      - restart nginx
   - name: disable default site
     file: path=/etc/nginx/sites-enabled/default state=absent
     become: true
